@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>天工游戏开发部 - Tiangong Games</title>
+    <title>DivineArtGameStudio - Tiangong Games</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -182,12 +182,12 @@
     <div id="smooth-scroll-container">
         <header class="fixed top-0 left-0 w-full z-50 glass-effect">
             <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-                <div class="text-2xl font-bold tracking-widest">
-                    天工 <span class="font-light">GAMES</span>
+                <div class="text-2xl font-light tracking-widest">
+                    DIVINE GAMES
                 </div>
                 <nav class="hidden md:flex space-x-2 items-center text-sm uppercase tracking-wider">
                     <a href="#hero" class="nav-link">首页</a>
-                    <a href="#games" class="nav-link">游戏作品</a>
+                    <a href="#games" class="nav-link">作品</a>
                     <a href="#about" class="nav-link">关于我们</a>
                     <a href="#contact" class="cta-button text-black px-4 py-2 rounded-md font-semibold ml-4">联系我们</a>
                 </nav>
@@ -206,7 +206,7 @@
                     </h1>
                     <div id="main-subtitle">
                         <p class="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto font-light tracking-wider">
-                            于无垠星海中构筑奇想，在代码光流间点亮宇宙。我们是新世界的开拓者，是数字星辰的铸造师。
+                            我们只是构建一个奇点 欢乐和痛苦 都会在其中真实地发生
                         </p>
                     </div>
                 </div>
@@ -216,7 +216,7 @@
                 <div class="container mx-auto px-6">
                     <div class="text-center mb-16 scroll-animate">
                         <h2 class="text-4xl md:text-5xl font-bold title-aurora-effect inline-block px-2">GAMES</h2>
-                        <p class="text-gray-400 mt-2">探索我们铸就的多元宇宙</p>
+                        <p class="text-gray-400 mt-2">探索奇点</p>
                         <div class="separator-v3"></div>
                     </div>
 
@@ -443,9 +443,10 @@
 
             document.querySelectorAll('.scroll-animate').forEach(el => observer.observe(el));
 
+            // 大标题
             const titleContainer = document.getElementById('main-title');
             if (titleContainer.childElementCount === 0) {
-                "天工游戏开发部".split('').forEach((char, index) => {
+                "Divine Art GameStudio".split('').forEach((char, index) => {
                     const span = document.createElement('span');
                     span.className = 'title-char';
                     span.textContent = char === ' ' ? '\u00A0' : char;
