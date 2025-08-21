@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天工游戏开发部 - Tiangong Games</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <style>
+        :root {
+            --cyan: #00ffff;
+            --magenta: #ff00ff;
+            --gold: #FFD700;
+            --background-color: #0a0a0f;
+            --text-color: #e0e0e0;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body::-webkit-scrollbar { width: 8px; }
+        body::-webkit-scrollbar-track { background: var(--background-color); }
+        body::-webkit-scrollbar-thumb { background-color: var(--cyan); border-radius: 10px; border: 2px solid var(--background-color); }
+
+        body {
+            font-family: 'Inter', 'Noto Sans SC', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+            overflow-x: hidden;
+            overflow-y: scroll; 
+        }
+
+        #smooth-scroll-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            will-change: transform;
+        }
+
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+
+        .glass-effect {
+            background: rgba(16, 16, 20, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            transition: background 0.3s, border 0.3s;
+        }
+
+        .scroll-animate {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s cubic-bezier(0.165, 0.84, 0.44, 1), transform 0.8s cubic-bezier(0.165, 0.84, 0.44, 1);
+        }
+
+        .scroll-animate.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        #hero-title-container {
+            perspective: 1000px;
+        }
+
+        #main-title, #main-subtitle {
+            transition: transform 0.1s ease-out;
+        }
+
+        .title-char {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(-20px) scale(1.2);
+            animation: revealChar 1s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+        }
+
+        @keyframes revealChar {
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .separator-v3 {
+            height: 1px;
+            width: 8rem;
+            background: rgba(255, 255, 255, 0.2);
+            margin: 1rem auto;
+        }
+        
+        .title-aurora-effect {
+            background: linear-gradient(90deg, var(--cyan), var(--magenta), var(--cyan));
+            background-size: 200% 100%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            animation: aurora 4s linear infinite;
+        }
+        @keyframes aurora {
+            from { background-position: 200% 0; }
+            to { background-position: 0% 0; }
+        }
+        
+        .nav-link {
+            position: relative;
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            z-index: 1;
+            transition: color 0.4s ease;
+            overflow: hidden;
+        }
+        .nav-link:hover {
+            color: #000;
+        }
+        .nav-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--cyan);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s cubic-bezier(0.5, 1.6, 0.4, 0.7);
+            z-index: -1;
+            border-radius: inherit;
+        }
+        .nav-link:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .cta-button {
+            transition: all 0.3s ease;
+            background-color: var(--cyan);
+        }
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px -10px rgba(0, 255, 255, 0.5);
+            background-color: #33ffff;
+        }
+
+        .outline-button {
+            position: relative; z-index: 1; transition: all 0.3s ease;
+        }
+        .outline-button:hover {
+            color: #000; border-color: var(--cyan); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0, 255, 255, 0.3);
+        }
+        .outline-button::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--cyan);
+            transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.5, 1.6, 0.4, 0.7); z-index: -1; border-radius: inherit;
+        }
+        .outline-button:hover::before { transform: scaleX(1); }
+
+        .game-card {
+            position: relative; border-radius: 0.5rem; overflow: hidden; transition: transform 0.4s ease, box-shadow 0.4s ease; border: 1px solid transparent;
+        }
+        .game-card:hover {
+            transform: translateY(-10px); box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5); border-color: rgba(0, 255, 255, 0.5);
+        }
+        .game-card img { transition: transform 0.4s ease; }
+        .game-card:hover img { transform: scale(1.05); }
+        .game-card .overlay { opacity: 0; transition: opacity 0.4s ease; border-radius: 0.5rem; }
+        .game-card:hover .overlay { opacity: 1; }
+
+    </style>
+</head>
+<body class="antialiased">
+    <canvas id="bg-canvas"></canvas>
+    <div id="smooth-scroll-container">
+        <header class="fixed top-0 left-0 w-full z-50 glass-effect">
+            <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+                <div class="text-2xl font-bold tracking-widest">
+                    天工 <span class="font-light">GAMES</span>
+                </div>
+                <nav class="hidden md:flex space-x-2 items-center text-sm uppercase tracking-wider">
+                    <a href="#hero" class="nav-link">首页</a>
+                    <a href="#games" class="nav-link">游戏作品</a>
+                    <a href="#about" class="nav-link">关于我们</a>
+                    <a href="#contact" class="cta-button text-black px-4 py-2 rounded-md font-semibold ml-4">联系我们</a>
+                </nav>
+                <div class="md:hidden">
+                    <button class="text-white focus:outline-none">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <section id="hero" class="h-screen flex items-center justify-center text-center relative">
+                <div id="hero-title-container" class="z-10">
+                    <h1 id="main-title" class="text-5xl md:text-7xl lg:text-8xl font-black uppercase tracking-widest mb-4" aria-label="天工游戏开发部">
+                    </h1>
+                    <div id="main-subtitle">
+                        <p class="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto font-light tracking-wider">
+                            于无垠星海中构筑奇想，在代码光流间点亮宇宙。我们是新世界的开拓者，是数字星辰的铸造师。
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="games" class="py-20 md:py-32">
+                <div class="container mx-auto px-6">
+                    <div class="text-center mb-16 scroll-animate">
+                        <h2 class="text-4xl md:text-5xl font-bold title-aurora-effect inline-block px-2">GAMES</h2>
+                        <p class="text-gray-400 mt-2">探索我们铸就的多元宇宙</p>
+                        <div class="separator-v3"></div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        <div class="game-card scroll-animate">
+                            <img src="https://placehold.co/600x800/1a1a1a/ffffff?text=PROJECT%20CYGNUS" alt="游戏项目：天鹅座" class="w-full h-full object-cover">
+                            <div class="overlay absolute inset-0 glass-effect flex flex-col justify-end p-8 text-white">
+                                <h3 class="text-3xl font-bold mb-2">代号：天鹅座</h3>
+                                <p class="text-gray-300 mb-4">一款探索未知星系的科幻叙事游戏。</p>
+                                <a href="#" class="text-cyan-400 font-semibold hover:underline">了解更多 &rarr;</a>
+                            </div>
+                        </div>
+                        <div class="game-card scroll-animate" style="transition-delay: 0.2s;">
+                            <img src="https://placehold.co/600x800/1a1a1a/ffffff?text=ECHOES%20OF%20VOID" alt="游戏项目：虚空回响" class="w-full h-full object-cover">
+                            <div class="overlay absolute inset-0 glass-effect flex flex-col justify-end p-8 text-white">
+                                <h3 class="text-3xl font-bold mb-2">虚空回响</h3>
+                                <p class="text-gray-300 mb-4">在崩坏的世界边缘，聆听过去的回响。</p>
+                                <a href="#" class="text-cyan-400 font-semibold hover:underline">了解更多 &rarr;</a>
+                            </div>
+                        </div>
+                        <div class="game-card scroll-animate" style="transition-delay: 0.4s;">
+                            <img src="https://placehold.co/600x800/1a1a1a/ffffff?text=COMING%20SOON" alt="即将推出" class="w-full h-full object-cover">
+                             <div class="overlay absolute inset-0 glass-effect flex flex-col justify-center items-center p-8 text-white">
+                                <h3 class="text-3xl font-bold mb-2">敬请期待</h3>
+                                <p class="text-gray-300">新的世界正在构建中...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="about" class="py-20 md:py-32">
+                <div class="container mx-auto px-6">
+                    <div class="flex flex-col lg:flex-row items-stretch gap-8">
+                        <div class="lg:w-1/2 scroll-animate rounded-lg p-8 flex flex-col justify-center">
+                            <h2 class="text-4xl md:text-5xl font-bold mb-4 title-aurora-effect inline-block px-2 self-start">关于天工</h2>
+                            <div class="separator-v3 ml-0 mt-2 mb-6"></div>
+                            <p class="text-gray-300 mb-4 leading-relaxed">
+                                天工游戏开发部，诞生于一个共同的梦想：探索数字宇宙的边界。我们非巨头，而是一群仰望星空的开发者、艺术家与梦想家。我们的名字“天工”寓意着以凡人之手，创星辰之奇迹，将无尽的想象力与最前沿的技术融合，打造能够穿梭时空、触动灵魂的游戏体验。
+                            </p>
+                            <p class="text-gray-300 leading-relaxed">
+                                我们坚信，每一个游戏都是一个独立的宇宙，等待着玩家去发现。在天工，每一行代码都是跃迁引擎的燃料，每一个像素都是构成新世界的原子。
+                            </p>
+                        </div>
+                        <div class="lg:w-1/2 scroll-animate" style="transition-delay: 0.2s;">
+                            <div class="glass-effect p-2 rounded-lg h-full">
+                                <img src="https://placehold.co/800x600/111111/333333?text=STUDIO" alt="工作室环境" class="rounded-md shadow-2xl w-full h-full object-cover">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <section id="contact" class="py-20 md:py-32 text-center">
+                 <div class="container mx-auto px-6 scroll-animate">
+                    <h2 class="text-4xl md:text-5xl font-bold title-aurora-effect inline-block px-2">加入我们</h2>
+                    <p class="text-gray-400 mt-2 mb-8 max-w-2xl mx-auto">星海远征，独行难至。我们正在寻找能够一同穿越小行星带、点亮新星系的同航者。如果你对创造未知充满渴望，欢迎加入我们的舰队。</p>
+                    <a href="mailto:hr@tiangong.games" class="outline-button border-2 border-cyan-500 text-cyan-500 px-8 py-3 rounded-md text-lg font-semibold">
+                        投递简历
+                    </a>
+                 </div>
+            </section>
+
+        </main>
+
+        <footer class="py-8 glass-effect mt-16">
+            <div class="container mx-auto px-6 text-center text-gray-400 text-sm">
+                <p>&copy; 2024 天工游戏开发部 (Tiangong Games). All Rights Reserved.</p>
+                <p class="mt-2">设计灵感来源于对游戏艺术的无限追求</p>
+            </div>
+        </footer>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- Final Version: Advanced Smooth Scrolling ---
+            const body = document.body;
+            const smoothScrollContainer = document.getElementById('smooth-scroll-container');
+            let currentScroll = 0;
+            let targetScroll = 0;
+            const ease = 0.075;
+
+            function setBodyHeight() {
+                body.style.height = `${smoothScrollContainer.scrollHeight}px`;
+            }
+
+            function smoothScrollLoop() {
+                targetScroll = window.scrollY;
+                currentScroll += (targetScroll - currentScroll) * ease;
+                
+                if (Math.abs(targetScroll - currentScroll) < 0.1) {
+                    currentScroll = targetScroll;
+                }
+                
+                smoothScrollContainer.style.transform = `translate3d(0, -${currentScroll}px, 0)`;
+                requestAnimationFrame(smoothScrollLoop);
+            }
+
+            setBodyHeight();
+            smoothScrollLoop();
+            window.addEventListener('resize', setBodyHeight);
+            
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute('href');
+                    const targetElement = document.querySelector(targetId);
+                    if (targetElement) {
+                        let targetPosition = targetElement.getBoundingClientRect().top + currentScroll;
+                        window.scrollTo({
+                            top: targetPosition,
+                        });
+                    }
+                });
+            });
+
+
+            // --- Final Version: Starfield Background ---
+            let scene, camera, renderer, starGroups;
+            let mouseX = 0, mouseY = 0;
+
+            function createStarTexture(size, intensity, color) {
+                const canvas = document.createElement('canvas');
+                const diameter = size * 2;
+                canvas.width = diameter;
+                canvas.height = diameter;
+                const context = canvas.getContext('2d');
+                const gradient = context.createRadialGradient(size, size, 0, size, size, size);
+                gradient.addColorStop(0, `rgba(${color.r}, ${color.g}, ${color.b}, ${intensity})`);
+                gradient.addColorStop(0.05, `rgba(${color.r}, ${color.g}, ${color.b}, ${intensity * 0.9})`);
+                gradient.addColorStop(0.3, `rgba(${color.r}, ${color.g}, ${color.b}, ${intensity * 0.3})`);
+                gradient.addColorStop(1, 'rgba(0,0,0,0)');
+                
+                context.fillStyle = gradient;
+                context.fillRect(0, 0, diameter, diameter);
+                return new THREE.CanvasTexture(canvas);
+            }
+            
+            function initThree() {
+                scene = new THREE.Scene();
+                camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 1000);
+                camera.position.z = 5;
+
+                const canvas = document.getElementById('bg-canvas');
+                renderer = new THREE.WebGLRenderer({ canvas, alpha: true });
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                renderer.setSize(window.innerWidth, window.innerHeight);
+
+                starGroups = [];
+                const starInfo = [
+                    { count: 4000, speed: 0.05, texture: createStarTexture(24, 1, {r:255, g:255, b:255}) },
+                    { count: 2000, speed: 0.1, texture: createStarTexture(36, 1.2, {r:255, g:255, b:255}) },
+                    { count: 200, speed: 0.18, texture: createStarTexture(48, 1.5, {r:255, g:215, b:0}) } 
+                ];
+
+                starInfo.forEach(info => {
+                    const geo = new THREE.BufferGeometry();
+                    const vertices = [];
+                    for (let i = 0; i < info.count; i++) {
+                        vertices.push(
+                            Math.random() * 600 - 300,
+                            Math.random() * 600 - 300,
+                            Math.random() * 600 - 300
+                        );
+                    }
+                    geo.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                    const mat = new THREE.PointsMaterial({
+                        map: info.texture,
+                        blending: THREE.AdditiveBlending,
+                        depthWrite: false,
+                        transparent: true
+                    });
+                    const points = new THREE.Points(geo, mat);
+                    points.speed = info.speed;
+                    starGroups.push(points);
+                    scene.add(points);
+                });
+                
+                window.addEventListener('resize', onWindowResize, false);
+                document.addEventListener('mousemove', onMouseMove, false);
+
+                animate();
+            }
+
+            function animate() {
+                starGroups.forEach(group => {
+                    const positions = group.geometry.attributes.position.array;
+                    for (let i = 2; i < positions.length; i += 3) {
+                        positions[i] += group.speed;
+                        if (positions[i] > 200) positions[i] = -200;
+                    }
+                    group.geometry.attributes.position.needsUpdate = true;
+                });
+                
+                camera.position.x += (mouseX * 2 - camera.position.x) * 0.05;
+                camera.position.y += (-mouseY * 2 - camera.position.y) * 0.05;
+                camera.lookAt(scene.position);
+
+                renderer.render(scene, camera);
+                requestAnimationFrame(animate);
+            }
+
+            function onWindowResize() {
+                camera.aspect = window.innerWidth / window.innerHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(window.innerWidth, window.innerHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                setBodyHeight();
+            }
+
+            function onMouseMove(event) {
+                mouseX = (event.clientX - window.innerWidth / 2) / window.innerWidth;
+                mouseY = (event.clientY - window.innerHeight / 2) / window.innerHeight;
+            }
+
+            initThree();
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) entry.target.classList.add('visible');
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.scroll-animate').forEach(el => observer.observe(el));
+
+            const titleContainer = document.getElementById('main-title');
+            if (titleContainer.childElementCount === 0) {
+                "天工游戏开发部".split('').forEach((char, index) => {
+                    const span = document.createElement('span');
+                    span.className = 'title-char';
+                    span.textContent = char === ' ' ? '\u00A0' : char;
+                    span.style.animationDelay = `${index * 0.05}s`;
+                    titleContainer.appendChild(span);
+                });
+            }
+
+            const heroSection = document.getElementById('hero');
+            const mainTitle = document.getElementById('main-title');
+            const mainSubtitle = document.getElementById('main-subtitle');
+
+            heroSection.addEventListener('mousemove', (e) => {
+                const { clientX, clientY, currentTarget } = e;
+                const { clientWidth, clientHeight } = currentTarget;
+                const x = (clientX - clientWidth / 2) / (clientWidth / 2);
+                const y = (clientY - clientHeight / 2) / (clientHeight / 2);
+                
+                mainTitle.style.transform = `rotateY(${x * 10}deg) rotateX(${-y * 10}deg)`;
+                mainSubtitle.style.transform = `rotateY(${x * 5}deg) rotateX(${-y * 5}deg)`;
+            });
+            heroSection.addEventListener('mouseleave', () => {
+                mainTitle.style.transform = 'rotateY(0deg) rotateX(0deg)';
+                mainSubtitle.style.transform = 'rotateY(0deg) rotateX(0deg)';
+            });
+        });
+    </script>
+</body>
+</html>
